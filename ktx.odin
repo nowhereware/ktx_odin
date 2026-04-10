@@ -2,6 +2,7 @@ package ktx_odin
 
 import "core:c/libc"
 
+@(export)
 foreign import lib "ktx.lib"
 
 ANIMDATA_KEY :: "KTXanimData"
@@ -89,16 +90,8 @@ TEXGETIMAGEOFFSET :: #type proc "system" (
 TEXGETDATASIZEUNCOMPRESSED :: #type proc "system" (this: ^Texture) -> uint
 TEXGETIMAGESIZE :: #type proc "system" (this: ^Texture, level: u32) -> uint
 TEXGETLEVELSIZE :: #type proc "system" (this: ^Texture, level: u32) -> uint
-TEXITERATELEVELS :: #type proc "system" (
-	this: ^Texture,
-	iterCb: ITERCB,
-	userdata: rawptr,
-) -> Result
-TEXITERATELOADLEVELFACES :: #type proc "system" (
-	this: ^Texture,
-	iterCb: ITERCB,
-	userdata: rawptr,
-) -> Result
+TEXITERATELEVELS :: #type proc "system" (this: ^Texture, iterCb: ITERCB, userdata: rawptr) -> Result
+TEXITERATELOADLEVELFACES :: #type proc "system" (this: ^Texture, iterCb: ITERCB, userdata: rawptr) -> Result
 TEXLOADIMAGEDATA :: #type proc "system" (this: ^Texture, pBuffer: [^]u8, bufSize: uint) -> Result
 TEXNEEDSTRANSCODING :: #type proc "system" (this: ^Texture) -> bool
 TEXSETIMAGEFROMMEMORY :: #type proc "system" (
@@ -268,19 +261,21 @@ Stream :: struct {
 VOIDFUNCTION :: #type proc "system" ()
 GLGETPROCADDRESS :: #type proc "system" (_proc: cstring) -> VOIDFUNCTION
 
+// Default ({}) is FASTEST. SLOWER = {.FASTER, .DEFAULT}
 UASTC_Flag :: enum u32 {
-	FASTEST           = 0,
-	FASTER            = 1,
-	DEFAULT           = 2,
-	SLOWER            = 3,
-	VERYSLOW          = 4,
-	MAX_LEVEL         = VERYSLOW,
-	FAVOR_UASTC_ERROR = 8,
-	FAVOR_BC7_ERROR   = 16,
+	FASTER                            = 0,
+	DEFAULT                           = 1,
+	VERYSLOW                          = 2,
+	FAVOR_UASTC_ERROR                 = 3,
+	FAVOR_BC7_ERROR                   = 4,
+	ETC1_FASTER_HINTS                 = 6,
+	ETC1_FASTEST_HINTS                = 7,
+	// Not documented in BasisU code.
+	_ETC1_DISABLE_FLIP_AND_INDIVIDUAL = 8,
 }
 UASTC_Flags :: bit_set[UASTC_Flag;u32]
 
-ASTC_Quality_Levels :: enum u32 {
+ASTC_Quality_Level :: enum u32 {
 	FASTEST    = 0,
 	FAST       = 10,
 	MEDIUM     = 60,
