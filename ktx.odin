@@ -323,7 +323,7 @@ AstcParams :: struct {
 	threadCount:    u32,
 	blockDimension: ASTC_Block_Dimension,
 	mode:           ASTC_Encoder_Mode,
-	qualityLevel:   ASTC_Quality_Levels,
+	qualityLevel:   ASTC_Quality_Level,
 	normalMap:      bool,
 	perceptual:     bool,
 	inputSwizzle:   [4]u8,
