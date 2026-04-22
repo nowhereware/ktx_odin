@@ -1,6 +1,7 @@
 package ktx_odin
 
 import "core:c/libc"
+import vk "vendor:vulkan"
 
 @(export)
 foreign import lib "ktx.lib"
@@ -13,6 +14,8 @@ WRITER_SCPARAMS_KEY :: "KTXwriterScParams"
 ORIENTATION1_FMT :: "S=%c"
 ORIENTATION2_FMT :: "S=%c,T=%c"
 ORIENTATION3_FMT :: "S=%c,T=%c,R=%c"
+
+FACESLICE_WHOLE_LEVEL :: max(u32)
 
 Result :: enum {
 	SUCCESS = 0,
@@ -175,7 +178,8 @@ SupercmpScheme :: enum i32 {
 
 Texture2 :: struct {
 	using texture:          Texture,
-	vkFormat:               u32,
+	// NOTE: Technically this is stored in libktx as a u32, but vendor stores VkFormat as an i32.
+	vkFormat:               vk.Format,
 	pDfd:                   ^u32,
 	supercompressionScheme: SupercmpScheme,
 	isVideo:                bool,
@@ -187,7 +191,7 @@ Texture2 :: struct {
 
 TextureCreateInfo :: struct {
 	glInternalFormat: u32,
-	vkFormat:         u32,
+	vkFormat:         vk.Format,
 	pDfd:             ^u32,
 	baseWidth:        u32,
 	baseHeight:       u32,
@@ -200,7 +204,7 @@ TextureCreateInfo :: struct {
 	generateMipmaps:  bool,
 }
 
-TextureCreateStorage :: enum i32 {
+TextureCreateStorageEnum :: enum i32 {
 	NO_STORAGE    = 0,
 	ALLOC_STORAGE = 1,
 }
@@ -361,7 +365,7 @@ BasisParams :: struct {
 	uastcRDONoMultithreading:         bool,
 }
 
-Transcode_FMT :: enum i32 {
+Transcode_Format :: enum i32 {
 	// ETC1-2
 	ETC1_RGB      = 0,
 	/*!< Opaque only. Returns RGB or alpha data, if
@@ -477,7 +481,7 @@ foreign lib {
 	Texture_GLUpload :: proc(this: ^Texture, pTexture: ^u32, pTarget: ^u32, pGlerror: ^u32) -> Result ---
 	Texture_IterateLevelFaces :: proc(this: ^Texture, iterCb: ITERCB, userdata: rawptr) -> Result ---
 
-	Texture1_Create :: proc(#by_ptr createInfo: TextureCreateInfo, storageAllocation: TextureCreateStorage, newTex: ^^Texture1) -> Result ---
+	Texture1_Create :: proc(#by_ptr createInfo: TextureCreateInfo, storageAllocation: TextureCreateStorageEnum, newTex: ^^Texture1) -> Result ---
 	Texture1_CreateFromStdioStream :: proc(stdioStream: ^libc.FILE, createFlags: TextureCreateFlags, newTex: ^^Texture1) -> Result ---
 	Texture1_CreateFromNamedFile :: proc(filename: cstring, createFlags: TextureCreateFlags, newTex: ^^Texture1) -> Result ---
 	Texture1_CreateFromMemory :: proc(bytes: [^]u8, size: uint, createFlags: TextureCreateFlags, newTex: ^^Texture1) -> Result ---
@@ -494,7 +498,7 @@ foreign lib {
 	Texture1_WriteKTX2ToMemory :: proc(this: ^Texture1, bytes: ^[^]u8, size: ^uint) -> Result ---
 	Texture1_WriteKTX2ToStream :: proc(this: ^Texture1, dststr: ^Stream) -> Result ---
 
-	Texture2_Create :: proc(#by_ptr createInfo: TextureCreateInfo, storageAllocation: TextureCreateStorage, newTex: ^^Texture2) -> Result ---
+	Texture2_Create :: proc(#by_ptr createInfo: TextureCreateInfo, storageAllocation: TextureCreateStorageEnum, newTex: ^^Texture2) -> Result ---
 	Texture2_CreateCopy :: proc(orig: ^Texture2, newTex: ^^Texture2) -> Result ---
 	Texture2_CreateFromStdioStream :: proc(stdioStream: ^libc.FILE, createFlags: TextureCreateFlags, newTex: ^^Texture2) -> Result ---
 	Texture2_CreateFromNamedFile :: proc(filename: cstring, createFlags: TextureCreateFlags, newTex: ^^Texture2) -> Result ---
@@ -527,10 +531,10 @@ foreign lib {
 	Texture2_CompressAstc :: proc(this: ^Texture2, quality: u32) -> Result ---
 	Texture2_DecodeAstc :: proc(this: ^Texture2) -> Result ---
 	Texture2_CompressBasisEx :: proc(this: ^Texture2, params: ^BasisParams) -> Result ---
-	Texture2_TranscodeBasis :: proc(this: ^Texture2, fmt: Transcode_FMT, flags: Transcode_Flags) -> Result ---
+	Texture2_TranscodeBasis :: proc(this: ^Texture2, fmt: Transcode_Format, flags: Transcode_Flags) -> Result ---
 	ErrorString :: proc(error: Result) -> cstring ---
 	SupercompressionSchemeString :: proc(scheme: SupercmpScheme) -> cstring ---
-	TranscodeFormatString :: proc(format: Transcode_FMT) -> cstring ---
+	TranscodeFormatString :: proc(format: Transcode_Format) -> cstring ---
 	HashList_Create :: proc(ppHl: ^^HashList) -> Result ---
 	HashList_CreateCopy :: proc(ppHl: ^^HashList, orig: HashList) -> Result ---
 	HashList_Construct :: proc(pHl: ^HashList) ---
